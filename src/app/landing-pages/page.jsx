@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { WebsitesAPI } from "@/utils/Endpoints/Websites";
 import { ClientsAPI } from "@/utils/Endpoints/Clients";
 import { TechnologiesAPI } from "@/utils/Endpoints/Technologies";
@@ -29,6 +29,9 @@ export default function LandingPages() {
     limit: 6,
     type: "LANDING_PAGE",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -62,6 +65,8 @@ export default function LandingPages() {
 
   useEffect(() => {
     const fetchLandingPages = async () => {
+      if (isLoading) return;
+      setIsLoading(true);
       try {
         const response = await WebsitesAPI.list({
           page: searchParams.page,
@@ -79,16 +84,53 @@ export default function LandingPages() {
           response?.data?.data?.websites || response?.data || [];
         const fetchedTotal =
           response?.data?.data?.total || fetchedLandingPages.length || 0;
-        setLandingPages(fetchedLandingPages);
+
+        setLandingPages((prev) =>
+          searchParams.page === 1
+            ? fetchedLandingPages
+            : [...prev, ...fetchedLandingPages]
+        );
         setTotalLandingPages(fetchedTotal);
       } catch (error) {
         console.error("Error fetching landing pages:", error);
         setLandingPages([]);
         setTotalLandingPages(0);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLandingPages();
   }, [searchParams]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isLoading &&
+          searchParams.page * searchParams.limit < totalLandingPages
+        ) {
+          setSearchParams((prev) => ({
+            ...prev,
+            page: prev.page + 1,
+          }));
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [isLoading, totalLandingPages, searchParams.page, searchParams.limit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -96,13 +138,6 @@ export default function LandingPages() {
       ...prev,
       [name]: value,
       page: 1,
-    }));
-  };
-
-  const handlePageChange = (newPage) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      page: newPage,
     }));
   };
 
@@ -122,11 +157,11 @@ export default function LandingPages() {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4">
       <h1 className="text-3xl font-semibold text-center mb-6">
         Our Landing Pages
       </h1>
-      <form
+      <div
         className="flex flex-col md:flex-row gap-2 md:gap-4 justify-between mb-4"
         autoComplete="off"
       >
@@ -136,13 +171,13 @@ export default function LandingPages() {
           placeholder="Search by title"
           value={searchParams.search}
           onChange={handleInputChange}
-          className="border p-2 flex-1"
+          className="border p-2 flex-1 rounded"
         />
         <select
           name="client_id"
           value={searchParams.client_id}
           onChange={handleInputChange}
-          className="border p-2 flex-1"
+          className="border p-2 flex-1 rounded"
         >
           <option value="">All Clients</option>
           {clients.map((client) => (
@@ -155,7 +190,7 @@ export default function LandingPages() {
           name="technology_id"
           value={searchParams.technology_id}
           onChange={handleInputChange}
-          className="border p-2 flex-1"
+          className="border p-2 flex-1 rounded"
         >
           <option value="">All Technologies</option>
           {technologies.map((tech) => (
@@ -164,7 +199,7 @@ export default function LandingPages() {
             </option>
           ))}
         </select>
-      </form>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.isArray(landingPages) && landingPages.length > 0 ? (
           landingPages.map((item, index) => (
@@ -193,25 +228,14 @@ export default function LandingPages() {
           </div>
         )}
       </div>
-      <div className="mt-4 flex justify-center space-x-2">
-        <button
-          type="button"
-          onClick={() => handlePageChange(searchParams.page - 1)}
-          disabled={searchParams.page === 1}
-          className="p-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>Page {searchParams.page}</span>
-        <button
-          type="button"
-          onClick={() => handlePageChange(searchParams.page + 1)}
-          disabled={searchParams.page * searchParams.limit >= totalLandingPages}
-          className="p-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      <div ref={loadMoreRef} className="h-10" />
+      {isLoading && (
+        <div className="text-center my-4">Loading more landing pages...</div>
+      )}
+      {searchParams.page * searchParams.limit >= totalLandingPages &&
+        landingPages.length > 0 && (
+          <div className="text-center my-4">No more landing pages to load</div>
+        )}
     </div>
   );
 }

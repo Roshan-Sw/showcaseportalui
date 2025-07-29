@@ -5,7 +5,7 @@ export const ClientsAPI = {
     get("clients/listing", {
       params: {
         page: params.page || 1,
-        limit: params.limit || 100,
+        limit: params.limit || 1000,
         keyword: params.keyword || "",
       },
     }),
