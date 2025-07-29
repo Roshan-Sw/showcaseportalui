@@ -14,24 +14,24 @@ export default function Navbar() {
           </Link>
         </div>
         <div className="space-x-4">
-          <a href="/websites" className="hover:text-gray-300">
+          <Link href="/websites" className="hover:text-gray-300">
             WEBSITES
-          </a>
-          <a href="/landing-pages" className="hover:text-gray-300">
+          </Link>
+          <Link href="/landing-pages" className="hover:text-gray-300">
             LANDING PAGES
-          </a>
-          <a href="/ad-films" className="hover:text-gray-300">
+          </Link>
+          <Link href="/ad-films" className="hover:text-gray-300">
             AD FILMS
-          </a>
-          <a href="/reels" className="hover:text-gray-300">
+          </Link>
+          <Link href="/reels" className="hover:text-gray-300">
             REELS
-          </a>
-          <a href="/corporate-videos" className="hover:text-gray-300">
+          </Link>
+          <Link href="/corporate-videos" className="hover:text-gray-300">
             CORPORATE VIDEOS
-          </a>
-          <a href="/keyword-ranking" className="hover:text-gray-300">
+          </Link>
+          <Link href="/keyword-ranking" className="hover:text-gray-300">
             KEYWORD RANKING
-          </a>
+          </Link>
         </div>
       </div>
     </nav>
