@@ -14,6 +14,9 @@ export default function Navbar() {
           </Link>
         </div>
         <div className="space-x-4">
+          <Link href="/creatives" className="hover:text-gray-300">
+            CREATIVES
+          </Link>
           <Link href="/websites" className="hover:text-gray-300">
             WEBSITES
           </Link>

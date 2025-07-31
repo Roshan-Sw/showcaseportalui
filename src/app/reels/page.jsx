@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { VideosAPI } from "@/utils/Endpoints/Videos";
 import { ClientsAPI } from "@/utils/Endpoints/Clients";
 import { BASE_IMAGE_URL } from "@/services/baseUrl";
+import dynamic from "next/dynamic";
+
+const Select = dynamic(() => import("react-select"), { ssr: false });
 
 function formatDateDDMMYYYY(dateString) {
   if (!dateString) return "";
@@ -30,6 +33,28 @@ export default function Reels() {
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
+
+  const clientOptions = [
+    { value: "", label: "All Clients" },
+    ...[...(clients || [])]
+      .slice()
+      .sort((a, b) =>
+        (a.client_name || "").localeCompare(b.client_name || "", undefined, {
+          sensitivity: "base",
+        })
+      )
+      .map((client) => ({
+        value: String(client.id),
+        label: client.client_name,
+      })),
+  ];
+
+  const formatOptions = [
+    { value: "", label: "All Formats" },
+    { value: "LANDSCAPE", label: "Landscape" },
+    { value: "PORTRAIT", label: "Portrait" },
+    { value: "SQUARE", label: "Square" },
+  ];
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -120,6 +145,32 @@ export default function Reels() {
     }));
   };
 
+  const handleClientChange = (selectedOption, { action }) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      client_id: selectedOption ? selectedOption.value : "",
+      page: 1,
+    }));
+  };
+
+  const handleFormatChange = (selectedOption, { action }) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      format: selectedOption ? selectedOption.value : "",
+      page: 1,
+    }));
+  };
+
+  const selectedClientOption =
+    clientOptions.find(
+      (opt) => String(opt.value) === String(searchParams.client_id)
+    ) || clientOptions[0];
+
+  const selectedFormatOption =
+    formatOptions.find(
+      (opt) => String(opt.value) === String(searchParams.format)
+    ) || formatOptions[0];
+
   const getThumbnailUrl = (item) => {
     if (item.thumbnail_presigned_url) return item.thumbnail_presigned_url;
     const thumbnail = item.thumbnail;
@@ -136,7 +187,7 @@ export default function Reels() {
 
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-semibold text-center mb-6">Our Reels</h1>
+      <h1 className="text-3xl font-semibold text-center mb-6">Reels</h1>
       <div
         className="flex flex-col md:flex-row gap-2 md:gap-4 justify-between mb-4"
         autoComplete="off"
@@ -149,30 +200,40 @@ export default function Reels() {
           onChange={handleInputChange}
           className="border p-2 flex-1 rounded"
         />
-        <select
-          name="client_id"
-          value={searchParams.client_id}
-          onChange={handleInputChange}
-          className="border p-2 flex-1 rounded"
-        >
-          <option value="">All Clients</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.client_name}
-            </option>
-          ))}
-        </select>
-        <select
-          name="format"
-          value={searchParams.format}
-          onChange={handleInputChange}
-          className="border p-2 flex-1 rounded"
-        >
-          <option value="">All Formats</option>
-          <option value="LANDSCAPE">Landscape</option>
-          <option value="PORTRAIT">Portrait</option>
-          <option value="SQUARE">Square</option>
-        </select>
+        <div className="flex-1 min-w-0">
+          <Select
+            name="client_id"
+            options={clientOptions}
+            value={selectedClientOption}
+            onChange={handleClientChange}
+            isSearchable
+            isClearable
+            classNamePrefix="react-select"
+            className="min-w-0"
+            styles={{
+              container: (base) => ({ ...base, width: "100%" }),
+              menu: (base) => ({ ...base, zIndex: 20 }),
+            }}
+            placeholder="All Clients"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <Select
+            name="format"
+            options={formatOptions}
+            value={selectedFormatOption}
+            onChange={handleFormatChange}
+            isSearchable
+            isClearable
+            classNamePrefix="react-select"
+            className="min-w-0"
+            styles={{
+              container: (base) => ({ ...base, width: "100%" }),
+              menu: (base) => ({ ...base, zIndex: 20 }),
+            }}
+            placeholder="All Formats"
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.isArray(videos) && videos.length > 0 ? (
