@@ -201,7 +201,7 @@ export default function LandingPages() {
     ) || technologyOptions[0];
 
   const getThumbnailUrl = (item) => {
-    if (item.thumbnail_presigned_url) return item.thumbnail_presigned_url;
+    if (item.thumbnail_public_url) return item.thumbnail_public_url;
     const thumbnail = item.thumbnail;
     if (!thumbnail) return "/placeholder.jpg";
     if (/^https?:\/\//i.test(thumbnail)) return thumbnail;
