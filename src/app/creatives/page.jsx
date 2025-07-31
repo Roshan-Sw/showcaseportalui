@@ -125,7 +125,7 @@ export default function Creatives() {
     ) || typeOptions[0];
 
   const getThumbnailUrl = (item) => {
-    if (item.thumbnail_presigned_url) return item.thumbnail_presigned_url;
+    if (item.thumbnail_public_url) return item.thumbnail_public_url;
     const thumbnail = item.thumbnail;
     if (!thumbnail) return "/placeholder.jpg";
     if (/^https?:\/\//i.test(thumbnail)) return thumbnail;
@@ -191,9 +191,9 @@ export default function Creatives() {
                     ? formatDateDDMMYYYY(item.created_at)
                     : "No creation date"}
                 </p>
-                {item.file_presigned_url && (
+                {item.file_public_url && (
                   <a
-                    href={item.file_presigned_url}
+                    href={item.file_public_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
