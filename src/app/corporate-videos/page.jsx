@@ -120,18 +120,17 @@ export default function CorporateVideos() {
     }));
   };
 
-  const getThumbnailUrl = (thumbnail) => {
+  const getThumbnailUrl = (item) => {
+    if (item.thumbnail_presigned_url) return item.thumbnail_presigned_url;
+    const thumbnail = item.thumbnail;
     if (!thumbnail) return "/placeholder.jpg";
-
     if (/^https?:\/\//i.test(thumbnail)) return thumbnail;
-
     if (typeof BASE_IMAGE_URL === "string" && BASE_IMAGE_URL) {
       return `${BASE_IMAGE_URL.replace(/\/$/, "")}/${thumbnail.replace(
         /^\//,
         ""
       )}`;
     }
-
     return `/${thumbnail.replace(/^\//, "")}`;
   };
 
@@ -185,7 +184,7 @@ export default function CorporateVideos() {
               className="border rounded-lg overflow-hidden shadow-sm"
             >
               <img
-                src={getThumbnailUrl(item.thumbnail)}
+                src={getThumbnailUrl(item)}
                 alt={item.title}
                 className="w-full h-48 object-cover"
               />
